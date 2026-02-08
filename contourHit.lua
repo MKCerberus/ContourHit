@@ -46,7 +46,7 @@ local function simplifyVertices(vertices, epsilon)
             douglasPeucker(points, index, last, epsilon, result)
         else
             if #result == 0 then
-                table.insert(result, points[first])
+                -- table.insert(result, points[first])
             end
             table.insert(result, points[last])
         end
@@ -198,42 +198,6 @@ local function unpackSilhouette(points)
 end
 
 
-local function getPolygons(vertices)
-    local allPolygons = {}
-    local len = 3*2
-    for i = 1, math.ceil(#vertices/len) do
-        local polygons = {}
-        for i2 = (i-1)*len + 1, i*len + 2 do
-            local vertice = vertices[i2]
-            if (vertice) then
-                table.insert(polygons, vertice)
-            else
-                break
-            end
-        end
-        if (#polygons/2 < 8 and i ~= 1) then
-            local y = allPolygons[1][#allPolygons[1]]
-            local x = allPolygons[1][#allPolygons[1]-1]
-            if (y) then
-                table.insert(polygons, 1, x)
-                table.insert(polygons, 2, y)
-
-                local i = -1
-                while (#polygons / 2 < 3 ) do
-                    i = i + 2
-                    local y = allPolygons[1][#allPolygons[1] - i]
-                    local x = allPolygons[1][#allPolygons[1] - i -1]
-                    table.insert(polygons, i, x)
-                    table.insert(polygons, i+1, y)
-                end
-            end
-        end
-        
-        table.insert(allPolygons, polygons)
-    end
-    return allPolygons
-end
-
 local function wrapperConttourHit(image, alpha, detals)
     image = type(image) == "string" and love.image.newImageData(image) or image
     alpha = alpha or 0.1
@@ -241,7 +205,7 @@ local function wrapperConttourHit(image, alpha, detals)
 
     local vertices = findSilhouetteVertices(image, alpha, detals)
     vertices = unpackSilhouette(vertices)
-    local polygons = getPolygons(vertices)
+    local polygons = love.math.triangulate(vertices)
 
     local contour = {width = image:getWidth(), height = image:getHeight(), polygons = polygons}, vertices
     function contour:getHitbox(world, x, y, typeBody, xScale, yScale, anchorX, anchorY)
@@ -250,7 +214,7 @@ local function wrapperConttourHit(image, alpha, detals)
         local body = love.physics.newBody(world, x or 0, y or 0, typeBody or "dynamic")
         
         local polygons
-        if (xScale == 1 and yScale == 1 and anchoX == 0 and anchorY == 0) then
+        if (xScale == 1 and yScale == 1 and anchorX == 0 and anchorY == 0) then
             polygons = self.polygons
         else
             polygons = {}
@@ -270,6 +234,7 @@ local function wrapperConttourHit(image, alpha, detals)
 
         local fixtures = {}
         local shapes = {}
+        print(#polygons)
 
         for i, vertices in ipairs(polygons) do
             local shape = love.physics.newPolygonShape(vertices)
@@ -301,7 +266,7 @@ local function wrapperConttourHit(image, alpha, detals)
         end
         function hitbox:fetFilterData(...)
             for _, fixture in ipairs(self.fixtures) do
-                fixture:setSensor(...)
+                fixture:fetFilterData(...)
             end
         end
 
