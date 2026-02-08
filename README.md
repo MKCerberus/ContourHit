@@ -1,3 +1,3 @@
-ContourHit - библиотека для Love2d, пощволяющая сощдавать хитбоксы по форме силуэта на изображении 
+ContourHit - библиотека для Love2d, пощволяющая создавать хитбоксы по форме силуэта на изображении 
 
 ContourHit is a library for Love2d that allows you to create hitboxes based on the silhouette of an image
